@@ -18,7 +18,6 @@ public:
 private:
 	int SCREEN_WIDTH;
 	int SCREEN_HEIGHT;
-	int value;
 
 	SDL_Window* _window;
 	SDL_Renderer* _renderer;
