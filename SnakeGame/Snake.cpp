@@ -2,7 +2,7 @@
 
 Snake::Snake(Graphics* graphics_, Uint8 red_, Uint8 green_, Uint8 blue_, Grid* grid_, int length_, int head_x_, int head_y_, Direction direction_)
 	: _red(red_), _green(green_), _blue(blue_), _input_queue(3), _queued_direction(direction_), _last_direction(direction_), _head_x(head_x_), _head_y(head_y_),
-	_current_tick(0), _extending(false), _state(SnakeState::MOVING), _update_status(NONE)
+	_current_tick(0), _extending(false), _state(SnakeState::MOVING), _update_status(NONE), _total_ticks(_ticks_per_frame * _frames_per_action)
 {
 	_grid = grid_;
 
@@ -80,6 +80,7 @@ Snake::~Snake()
 	while (_next != NULL)
 	{
 		Segment* segment = _next;
+		_grid->set_on_tile(segment->get_tile(), OnTile::NOTHING);
 		Animation* animation = _next->get_animation();
 		_next = _next->get_next();
 		delete segment;
@@ -311,6 +312,8 @@ void Snake::HandleRepeatInput(SDL_Keycode key_)
 
 Uint16 Snake::Update()
 {
+	SDL_RenderFillRect(_graphics->get_renderer(), &_head->get_tile()->pixel_rect);
+
 	_update_status = NONE;
 	switch (_state)
 	{
@@ -327,7 +330,7 @@ Uint16 Snake::Update()
 	case SnakeState::MOVING:
 		if(_debug_input) printf("%04d ", _current_tick);
 
-		if (_current_tick >= _ticks_per_frame * _frames_per_action)
+		if (_current_tick >= _total_ticks)
 		{
 			ActionComplete();
 			_current_tick = 0;
@@ -342,7 +345,7 @@ Uint16 Snake::Update()
 				}
 
 				_head->AdvanceAllAnimations();
-				//_head->AdvanceAllAnimations();
+				_head->AdvanceAllAnimations();
 				//_head->AdvanceAllAnimations();
 			}
 

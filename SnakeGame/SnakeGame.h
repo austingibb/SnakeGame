@@ -50,6 +50,7 @@ private:
 
 	Sprite _food;
 	Sprite _ground;
+	Sprite _wall;
 	Mix_Music* _intro_music = NULL;
 	Mix_Music* _main_music = NULL;
 	Mix_Chunk* _hit_sound = NULL;

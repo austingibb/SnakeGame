@@ -44,8 +44,9 @@ public:
 private:
 	Grid* _grid;
 
-	int _frames_per_action = 4;
+	int _frames_per_action = 5;
 	int _ticks_per_frame = 1;
+	int _total_ticks;
 	int _current_tick;
 
 	int _ticks_before_fail = 20;

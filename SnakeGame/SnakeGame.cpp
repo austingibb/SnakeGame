@@ -37,15 +37,32 @@ SnakeGame::SnakeGame(GameSize size_) : _rng(std::random_device()()), _frames(0)
 		AddFood();
 	}
 
-	_snake = new Snake(&_graphics, 100, 100, 200, _grid, 4, 3, 4, Direction::DOWN);
+	_grid->set_on_tile(1, 1, OnTile::WALL);
+	_grid->set_on_tile(2, 2, OnTile::WALL);
+	_grid->set_on_tile(3, 3, OnTile::WALL);
+	_grid->set_on_tile(4, 4, OnTile::WALL);
+	_grid->set_on_tile(5, 5, OnTile::WALL);
+	_grid->set_on_tile(6, 6, OnTile::WALL);
+	_grid->set_on_tile(7, 7, OnTile::WALL);
+	_grid->set_on_tile(8, 8, OnTile::WALL);
+	_grid->set_on_tile(9, 9, OnTile::WALL);
+	_grid->set_on_tile(10, 10, OnTile::WALL);
+	_grid->set_on_tile(11, 11, OnTile::WALL);
+	_grid->set_on_tile(12, 12, OnTile::WALL);
+	_grid->set_on_tile(13, 13, OnTile::WALL);
+	_grid->set_on_tile(14, 14, OnTile::WALL);
+	_grid->set_on_tile(15, 15, OnTile::WALL);
+	_grid->set_on_tile(16, 16, OnTile::WALL);
+
+	_snake = new Snake(&_graphics, 100, 100, 200, _grid, 4, 9, 4, Direction::DOWN);
 
 	_fps_timer.start();
 }
 
 SnakeGame::~SnakeGame()
 {
-	delete _grid;
 	delete _snake;
+	delete _grid;
 
 	Mix_FreeMusic(_intro_music);
 	Mix_FreeMusic(_main_music);
@@ -71,19 +88,35 @@ void SnakeGame::RunGame()
 	{
 		while (SDL_PollEvent(&e) > 0)
 		{	
-			if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE || e.type == SDL_QUIT)
+			if (e.type == SDL_KEYDOWN)
 			{
-				quit = true;
-			}
-			else if (e.type == SDL_KEYDOWN)
-			{
-				if (e.key.repeat == 0)
+				if (e.key.keysym.sym == SDLK_ESCAPE || e.type == SDL_QUIT)
 				{
-					_snake->HandleInput(e.key.keysym.sym);
+					quit = true;
 				}
 				else
 				{
-					_snake->HandleRepeatInput(e.key.keysym.sym);
+					switch (_game_state)
+					{
+					case RUNNING:
+						if (e.key.repeat == 0)
+						{
+							_snake->HandleInput(e.key.keysym.sym);
+						}
+						else
+						{
+							_snake->HandleRepeatInput(e.key.keysym.sym);
+						}
+						break;
+					case OVER:
+						if (e.key.keysym.sym == SDLK_r)
+						{
+							delete _snake;
+							_snake = new Snake(&_graphics, 100, 100, 200, _grid, 4, 9, 4, Direction::DOWN);
+							_game_state = RUNNING;
+						}
+						break;
+					}
 				}
 			}
 
@@ -96,7 +129,6 @@ void SnakeGame::RunGame()
 			RenderAll();
 			break;
 		case OVER:
-			quit = true;
 			break;
 		}
 		
@@ -134,6 +166,7 @@ void SnakeGame::UpdateAll()
 	if (_result & Snake::DIED)
 	{
 		Mix_PlayChannel(-1, _death_sound, 0);
+		_game_state = OVER;
 	}
 
 	if (_result & Snake::TURNED)
@@ -157,9 +190,14 @@ void SnakeGame::RenderAll()
 			Tile* tile = _grid->get_tile(row, col);
 			_ground.Render(_graphics.get_renderer(), &tile->pixel_rect);
 
-			if (tile->on_tile == FOOD)
+			switch (tile->on_tile)
 			{
+			case FOOD:
 				_food.Render(_graphics.get_renderer(), &tile->pixel_rect);
+				break;
+			case WALL:
+				_wall.Render(_graphics.get_renderer(), &tile->pixel_rect);
+				break;
 			}
 		}
 	}
@@ -206,7 +244,8 @@ food_placed:;
 
 void SnakeGame::LoadMedia()
 {
-	_ground.LoadTexture(_graphics.get_renderer(), "Art/Grid/GroundDebug.png");
+	_wall.LoadTexture(_graphics.get_renderer(), "Art/Grid/PlaceholderWall.png");
+	_ground.LoadTexture(_graphics.get_renderer(), "Art/Grid/PlaceholderGround.png");
 	_food.LoadTexture(_graphics.get_renderer(), "Art/Grid/TempFood.png");
 
 	/*_intro_music = Mix_LoadMUS("Sound/Snake_Intro.wav");
